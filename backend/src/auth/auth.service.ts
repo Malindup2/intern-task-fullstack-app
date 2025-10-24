@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { RegisterUserDto } from './dto/register-user.dto';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -10,7 +11,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(userData: any) {
+  async register(userData: RegisterUserDto) {
     const existingUser = await this.usersService.findByEmail(userData.email);
     if (existingUser) throw new UnauthorizedException('Email already in use');
     const user = await this.usersService.create(userData);
@@ -24,6 +25,7 @@ export class AuthService {
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
     const payload = { id: user.id, email: user.email };
-    return { access_token: this.jwtService.sign(payload, { expiresIn: '24h' }) };
+    // Use JWT module's configured expiration (24h) instead of overriding
+    return { access_token: this.jwtService.sign(payload) };
   }
 }

@@ -29,4 +29,17 @@ export class UsersService {
   async findById(id: number): Promise<User | null> {
     return this.userRepository.findOne({ where: { id } });
   }
+
+  async update(id: number, updateData: Partial<User>): Promise<User | null> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) return null;
+    // hash the updated password
+    if ((updateData as any).password) {
+      const hashed = await bcrypt.hash((updateData as any).password, 10);
+      (updateData as any).password = hashed;
+    }
+    Object.assign(user, updateData);
+    await this.userRepository.save(user);
+    return this.userRepository.findOne({ where: { id } }) as Promise<User>;
+  }
 }
